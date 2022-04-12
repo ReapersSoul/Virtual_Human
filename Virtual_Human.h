@@ -283,26 +283,6 @@ namespace Virtual_Human {
         return Point(R, G, B);
     }
 
-    struct SensorPoint : public DisplayPoint {
-        double val = 0;
-
-        void SetVal(double _val) {
-            val = _val;
-            color = HSVtoRGB(val, 1, 1);
-        }
-    };
-
-    struct Ear {
-        double catchRadius;
-    };
-
-    struct Eye {
-        Point pos;
-        Point dir;
-        double fov;
-        double focus;
-    };
-
     struct Volume {
         std::vector<Point*> points;
     };
@@ -318,55 +298,6 @@ namespace Virtual_Human {
             for (int i = 0; i < PhysicalPoints.size(); i++) {
                 DrawPolygon(polysides, polyradius, PhysicalPoints[i]);
             }
-        }
-    };
-
-    struct Virtual_Human {
-        Eye  eyes[2];
-        std::vector<DisplayPoint> PhysicalPoints;
-        std::vector<SensorPoint*>  Sour_TastePoints;
-        std::vector<SensorPoint*>  Sweet_TastePoints;
-        std::vector<SensorPoint*>  Salty_TastePoints;
-        std::vector<SensorPoint*>  Spicy_TastePoints;
-        std::vector<SensorPoint*>  Compression_Strech_Points;
-        std::vector<SensorPoint*> Pain_Pleasure_Points;
-        std::vector<SensorPoint*> Itch_Discomfort_Points;
-        std::vector<DisplayPoint*> PinnedPoints;
-        std::vector<Bone> Base_Bones;
-        std::vector < std::vector<std::vector<Bone>>> Animation;
-        std::vector<std::vector<std::vector<std::vector<double>>>> weights;
-        int SelectedAnimation = 0;
-        int frame = 0;
-        int ParticleResolution = 3;
-        double Elasticity = 0;
-        int polysides = 3;
-        double polyradius = .05;
-        std::vector<double> ElasticityWeights;
-        std::vector<double> BoneWeights;
-        std::vector<double> SenseWeights;
-        void Draw() {
-            switch (SelectedAnimation)
-            {
-            case 0:
-                //base bones
-                DrawPointsOnBones(PhysicalPoints, Base_Bones, weights[0][0]);
-                break;
-            default:
-                DrawPointsOnBones(PhysicalPoints, Animation[SelectedAnimation - 1][frame], weights[SelectedAnimation - 1][frame]);
-                break;
-            }
-        }
-        void DrawPointsOnBones(std::vector<DisplayPoint> dp, std::vector<Bone> bones, std::vector<std::vector<double>> weights) {
-            for (int i = 0; i < dp.size(); i++)
-            {
-                DisplayPoint point = dp[i];
-                for (int j = 0; j < bones.size(); j++)
-                {
-                    point = point + (bones[j].start * weights[i][j]);
-                }
-                DrawPolygon(ParticleResolution, .50, point);
-            }
-
         }
     };
 

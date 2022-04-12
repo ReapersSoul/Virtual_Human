@@ -37,6 +37,8 @@ namespace fs = std::filesystem;
 #include <thread>
 
 #include "Virtual_Human.h"
+#include "Evolution.h"
+#include "Brain.h"
 #include <chrono>
 namespace chrono= std::chrono;
 
@@ -187,43 +189,42 @@ void DrawFunct(GLWindow* wind) {
 
 int main()
 {
-    tree = Virtual_Human::OctTree(bound, Cap);
-    phys.boundry = search;
+    //tree = Virtual_Human::OctTree(bound, Cap);
+    //phys.boundry = search;
     srand(time(0));
-    // Initialise all DevIL functionality
-    ilutRenderer(ILUT_OPENGL);
-    ilInit();
-    iluInit();
-    ilutInit();
-    ilutRenderer(ILUT_OPENGL);    // Tell DevIL that we're using OpenGL for our rendering
+    //// Initialise all DevIL functionality
+    //ilutRenderer(ILUT_OPENGL);
+    //ilInit();
+    //iluInit();
+    //ilutInit();
+    //ilutRenderer(ILUT_OPENGL);    // Tell DevIL that we're using OpenGL for our rendering
 
-    //init glwindow
-    GLWindow wind;
-    wind.SetDPS(0);
-    wind.SetFPS(0);
-    wind.SetKeyHandle(&KeyHandler);
-    wind.SetSetupFunct(&SetupFunct);
-    wind.SetUpdateFunct(&UpdateFunct);
-    wind.SetDrawFunct(&DrawFunct);
-    wind.SetDataFunct(&DataFunct);
-    wind.Init();
-
-
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui_Context = ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    // Setup Platform/Renderer bindings
-    ImGui_ImplGlfw_InitForOpenGL(wind.GetWindow(), true);
-    ImGui_ImplOpenGL3_Init("#version 130");
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
+    ////init glwindow
+    //GLWindow wind;
+    //wind.SetDPS(0);
+    //wind.SetFPS(0);
+    //wind.SetKeyHandle(&KeyHandler);
+    //wind.SetSetupFunct(&SetupFunct);
+    //wind.SetUpdateFunct(&UpdateFunct);
+    //wind.SetDrawFunct(&DrawFunct);
+    //wind.SetDataFunct(&DataFunct);
+    //wind.Init();
 
 
-    wind.Loop();
+    //// Setup Dear ImGui context
+    //IMGUI_CHECKVERSION();
+    //ImGui_Context = ImGui::CreateContext();
+    //ImGuiIO& io = ImGui::GetIO();
+    //// Setup Platform/Renderer bindings
+    //ImGui_ImplGlfw_InitForOpenGL(wind.GetWindow(), true);
+    //ImGui_ImplOpenGL3_Init("#version 130");
+    //// Setup Dear ImGui style
+    //ImGui::StyleColorsDark();
 
 
-    std::cout << "Hello World!\n";
+    //wind.Loop();
+
+    
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
