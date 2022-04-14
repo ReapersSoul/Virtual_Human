@@ -3,36 +3,19 @@
 #include "Brain.h"
 #include "Evolution.h"
 #include "Eye.h"
+#include "Ear.h"
 #include "Skeleton.h"
 
 namespace Human {
 
     class Human {
-
-        typedef std::vector<Brain::Brain<double>>(*MutationFunct)(Brain::Brain<double> obj, int i);
-        typedef double (*EvaluatePerformance)(Brain::Brain<double> obj, std::vector<double> expected);
-
-        std::vector<std::pair<std::vector<double>, std::string>> Senses;
+        std::vector<std::pair<std::vector<double>, std::string>> * Senses;
         Eye::Eye Eyes[2];
+        Ear::Ear Ears[2];
         Skeleton::Skeleton skeleton;
 
         Brain::Brain<double> brain;
-        Human(int memorySize, int EyeResolution,double Eye_Radius_FOV,double Eye_Focus, int AudioSamplesPerStep,Skeleton::Skeleton skel, std::vector<std::pair<std::vector<double>, std::string>> senses) {
-            Eyes[0].SetResolution(EyeResolution);
-            Eyes[0].SetFocus(Eye_Focus);
-            Eyes[0].SetFov(Eye_Radius_FOV);
-            Eyes[1].SetResolution(EyeResolution);
-            Eyes[1].SetFocus(Eye_Focus);
-            Eyes[1].SetFov(Eye_Radius_FOV);
-            skeleton = skel;
-            
-            memory.resize(memorySize);
-            brain.SetActFunct(AFunct);
-            brain.SetWeightSizes(900 * 3, { 900,300,150,75,3 });
-            std::vector<double> bias = { 1,1,1,1,1 };
-            brain.SetBias(bias);
-            brain.Randomize();
-        }
+
 
         static double AFunct(double x) {
             if (x < 0) {
@@ -44,6 +27,35 @@ namespace Human {
         }
 
         std::vector<std::pair<std::vector<double>, std::vector<double>>> memory;
+
+        double bladder=0;
+        double Excrement=0;
+        double Food=100;
+        double Water=100;
+        double Tempature=97.5;
+        bool Pregnant = false;
+        bool SexIsMale = false;
+        
+
+    public:
+        Human() {};
+
+        Human(int memorySize, int EyeResolution, double Eye_Radius_FOV, double Eye_Focus, int AudioSamplesPerStep, Skeleton::Skeleton skel, std::vector<std::pair<std::vector<double>, std::string>>* senses) {
+            Eyes[0].SetResolution(EyeResolution);
+            Eyes[0].SetFocus(Eye_Focus);
+            Eyes[0].SetFov(Eye_Radius_FOV);
+            Eyes[1].SetResolution(EyeResolution);
+            Eyes[1].SetFocus(Eye_Focus);
+            Eyes[1].SetFov(Eye_Radius_FOV);
+            skeleton = skel;
+
+            memory.resize(memorySize);
+            brain.SetActFunct(AFunct);
+            brain.SetWeightSizes(900 * 3, { 900,300,150,75,3 });
+            std::vector<double> bias = { 1,1,1,1,1 };
+            brain.SetBias(bias);
+            brain.Randomize();
+        }
 
         std::vector<double> getInputs() {
             std::vector<double> ret;
@@ -73,9 +85,9 @@ namespace Human {
             {
                 ret.push_back(tmp[i]);
             }
-            for (int i = 0; i < Senses.size(); i++)
+            for (int i = 0; i < Senses->size(); i++)
             {
-                std::vector<double> tmp = Senses[i].first;
+                std::vector<double> tmp = (*Senses)[i].first;
                 for (int j = 0; j < tmp.size(); j++)
                 {
                     ret.push_back(tmp[j]);
@@ -84,36 +96,32 @@ namespace Human {
         }
 
         void SetState(std::vector<double> outs) {
-            Eyes[0].SetRot();
-            Eyes[0].SetFocus();
-            Eyes[1].SetRot();
-            Eyes[1].SetFocus();
-            for (int i = 0; i < skeleton.Size(); i++)
-            {
-                skeleton.GetBone(i).SetAll();
-            }
+            //Eyes[0].SetRot();
+            //Eyes[0].SetFocus();
+            //Eyes[1].SetRot();
+            //Eyes[1].SetFocus();
+            //for (int i = 0; i < skeleton.Size(); i++)
+            //{
+            //    skeleton.GetBone(i).SetAll();
+            //}
         }
 
-        double EvalPerformance(Brain::Brain<double> obj) {
-            //evaluate how a humans brain is doing as a double closer to 0 is better
-            obj.Process(this->getInputs());
-
-            return 1;
+        void Mutate(double stepsize) {
+            brain.MutateSelf(stepsize);
         }
 
-        static std::vector <Brain::Brain<double>> MutateFunct(Brain::Brain<double> obj, int i) {
-            std::vector<Brain::Brain<double>> ret;
-            for (int j = 0; j < i; j++)
-            {
-                ret.push_back(obj.Mutate(.01));
-            }
-            return ret;
+        Human GetMutate(double stepsize) {
+            Human h = *this;
+            h.Mutate(stepsize);
+            return h;
         }
 
-        void Step(int Generations,int poolsize) {
-            Evolution::Pool<Brain::Brain<double>,Human::Human::EvaluatePerformance, Human::Human::MutationFunct> p(poolsize,EvalPerformance,MutateFunct);
-            p.SetPrintDebug(true);
-            brain = p.Evolve(Generations, brain);
+        void Step() {
+            Food -= .001;
+            Water -= .001;
+            Excrement += .001;
+            bladder += .001;
+            SetState(brain.Process(getInputs()));
         }
     };
 }

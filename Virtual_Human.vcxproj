@@ -185,6 +185,8 @@
     <ClInclude Include="imstb_textedit.h" />
     <ClInclude Include="imstb_truetype.h" />
     <ClInclude Include="OctTree.h" />
+    <ClInclude Include="Parallel Accelorator.h" />
+    <ClInclude Include="Physics.h" />
     <ClInclude Include="Skeleton.h" />
     <ClInclude Include="Virtual_Human.h" />
     <ClInclude Include="WINNETLIB.h" />

@@ -1655,10 +1655,10 @@ static int stbtt__GetGlyphShapeTT(const stbtt_fontinfo *info, int glyph_index, s
       stbtt_uint8 flags=0,flagcount;
       stbtt_int32 ins, i,j=0,m,n, next_move, was_off=0, off, start_off=0;
       stbtt_int32 x,y,cx,cy,sx,sy, scx,scy;
-      stbtt_uint8 *points;
+      stbtt_uint8 *Data;
       endPtsOfContours = (data + g + 10);
       ins = ttUSHORT(data + g + 10 + numberOfContours * 2);
-      points = data + g + 10 + numberOfContours * 2 + 2 + ins;
+      Data = data + g + 10 + numberOfContours * 2 + 2 + ins;
 
       n = 1+ttUSHORT(endPtsOfContours + numberOfContours*2-2);
 
@@ -1680,9 +1680,9 @@ static int stbtt__GetGlyphShapeTT(const stbtt_fontinfo *info, int glyph_index, s
 
       for (i=0; i < n; ++i) {
          if (flagcount == 0) {
-            flags = *points++;
+            flags = *Data++;
             if (flags & 8)
-               flagcount = *points++;
+               flagcount = *Data++;
          } else
             --flagcount;
          vertices[off+i].type = flags;
@@ -1693,12 +1693,12 @@ static int stbtt__GetGlyphShapeTT(const stbtt_fontinfo *info, int glyph_index, s
       for (i=0; i < n; ++i) {
          flags = vertices[off+i].type;
          if (flags & 2) {
-            stbtt_int16 dx = *points++;
+            stbtt_int16 dx = *Data++;
             x += (flags & 16) ? dx : -dx; // ???
          } else {
             if (!(flags & 16)) {
-               x = x + (stbtt_int16) (points[0]*256 + points[1]);
-               points += 2;
+               x = x + (stbtt_int16) (Data[0]*256 + Data[1]);
+               Data += 2;
             }
          }
          vertices[off+i].x = (stbtt_int16) x;
@@ -1709,12 +1709,12 @@ static int stbtt__GetGlyphShapeTT(const stbtt_fontinfo *info, int glyph_index, s
       for (i=0; i < n; ++i) {
          flags = vertices[off+i].type;
          if (flags & 4) {
-            stbtt_int16 dy = *points++;
+            stbtt_int16 dy = *Data++;
             y += (flags & 32) ? dy : -dy; // ???
          } else {
             if (!(flags & 32)) {
-               y = y + (stbtt_int16) (points[0]*256 + points[1]);
-               points += 2;
+               y = y + (stbtt_int16) (Data[0]*256 + Data[1]);
+               Data += 2;
             }
          }
          vertices[off+i].y = (stbtt_int16) y;
@@ -3384,15 +3384,15 @@ static void stbtt__rasterize(stbtt__bitmap *result, stbtt__point *pts, int *wcou
    STBTT_free(e, userdata);
 }
 
-static void stbtt__add_point(stbtt__point *points, int n, float x, float y)
+static void stbtt__add_point(stbtt__point *Data, int n, float x, float y)
 {
-   if (!points) return; // during first pass, it's unallocated
-   points[n].x = x;
-   points[n].y = y;
+   if (!Data) return; // during first pass, it's unallocated
+   Data[n].x = x;
+   Data[n].y = y;
 }
 
 // tessellate until threshold p is happy... @TODO warped to compensate for non-linear stretching
-static int stbtt__tesselate_curve(stbtt__point *points, int *num_points, float x0, float y0, float x1, float y1, float x2, float y2, float objspace_flatness_squared, int n)
+static int stbtt__tesselate_curve(stbtt__point *Data, int *num_points, float x0, float y0, float x1, float y1, float x2, float y2, float objspace_flatness_squared, int n)
 {
    // midpoint
    float mx = (x0 + 2*x1 + x2)/4;
@@ -3403,16 +3403,16 @@ static int stbtt__tesselate_curve(stbtt__point *points, int *num_points, float x
    if (n > 16) // 65536 segments on one curve better be enough!
       return 1;
    if (dx*dx+dy*dy > objspace_flatness_squared) { // half-pixel error allowed... need to be smaller if AA
-      stbtt__tesselate_curve(points, num_points, x0,y0, (x0+x1)/2.0f,(y0+y1)/2.0f, mx,my, objspace_flatness_squared,n+1);
-      stbtt__tesselate_curve(points, num_points, mx,my, (x1+x2)/2.0f,(y1+y2)/2.0f, x2,y2, objspace_flatness_squared,n+1);
+      stbtt__tesselate_curve(Data, num_points, x0,y0, (x0+x1)/2.0f,(y0+y1)/2.0f, mx,my, objspace_flatness_squared,n+1);
+      stbtt__tesselate_curve(Data, num_points, mx,my, (x1+x2)/2.0f,(y1+y2)/2.0f, x2,y2, objspace_flatness_squared,n+1);
    } else {
-      stbtt__add_point(points, *num_points,x2,y2);
+      stbtt__add_point(Data, *num_points,x2,y2);
       *num_points = *num_points+1;
    }
    return 1;
 }
 
-static void stbtt__tesselate_cubic(stbtt__point *points, int *num_points, float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, float objspace_flatness_squared, int n)
+static void stbtt__tesselate_cubic(stbtt__point *Data, int *num_points, float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, float objspace_flatness_squared, int n)
 {
    // @TODO this "flatness" calculation is just made-up nonsense that seems to work well enough
    float dx0 = x1-x0;
@@ -3446,10 +3446,10 @@ static void stbtt__tesselate_cubic(stbtt__point *points, int *num_points, float 
       float mx = (xa+xb)/2;
       float my = (ya+yb)/2;
 
-      stbtt__tesselate_cubic(points, num_points, x0,y0, x01,y01, xa,ya, mx,my, objspace_flatness_squared,n+1);
-      stbtt__tesselate_cubic(points, num_points, mx,my, xb,yb, x23,y23, x3,y3, objspace_flatness_squared,n+1);
+      stbtt__tesselate_cubic(Data, num_points, x0,y0, x01,y01, xa,ya, mx,my, objspace_flatness_squared,n+1);
+      stbtt__tesselate_cubic(Data, num_points, mx,my, xb,yb, x23,y23, x3,y3, objspace_flatness_squared,n+1);
    } else {
-      stbtt__add_point(points, *num_points,x3,y3);
+      stbtt__add_point(Data, *num_points,x3,y3);
       *num_points = *num_points+1;
    }
 }
@@ -3457,7 +3457,7 @@ static void stbtt__tesselate_cubic(stbtt__point *points, int *num_points, float 
 // returns number of contours
 static stbtt__point *stbtt_FlattenCurves(stbtt_vertex *vertices, int num_verts, float objspace_flatness, int **contour_lengths, int *num_contours, void *userdata)
 {
-   stbtt__point *points=0;
+   stbtt__point *Data=0;
    int num_points=0;
 
    float objspace_flatness_squared = objspace_flatness * objspace_flatness;
@@ -3482,8 +3482,8 @@ static stbtt__point *stbtt_FlattenCurves(stbtt_vertex *vertices, int num_verts, 
    for (pass=0; pass < 2; ++pass) {
       float x=0,y=0;
       if (pass == 1) {
-         points = (stbtt__point *) STBTT_malloc(num_points * sizeof(points[0]), userdata);
-         if (points == NULL) goto error;
+         Data = (stbtt__point *) STBTT_malloc(num_points * sizeof(Data[0]), userdata);
+         if (Data == NULL) goto error;
       }
       num_points = 0;
       n= -1;
@@ -3497,21 +3497,21 @@ static stbtt__point *stbtt_FlattenCurves(stbtt_vertex *vertices, int num_verts, 
                start = num_points;
 
                x = vertices[i].x, y = vertices[i].y;
-               stbtt__add_point(points, num_points++, x,y);
+               stbtt__add_point(Data, num_points++, x,y);
                break;
             case STBTT_vline:
                x = vertices[i].x, y = vertices[i].y;
-               stbtt__add_point(points, num_points++, x, y);
+               stbtt__add_point(Data, num_points++, x, y);
                break;
             case STBTT_vcurve:
-               stbtt__tesselate_curve(points, &num_points, x,y,
+               stbtt__tesselate_curve(Data, &num_points, x,y,
                                         vertices[i].cx, vertices[i].cy,
                                         vertices[i].x,  vertices[i].y,
                                         objspace_flatness_squared, 0);
                x = vertices[i].x, y = vertices[i].y;
                break;
             case STBTT_vcubic:
-               stbtt__tesselate_cubic(points, &num_points, x,y,
+               stbtt__tesselate_cubic(Data, &num_points, x,y,
                                         vertices[i].cx, vertices[i].cy,
                                         vertices[i].cx1, vertices[i].cy1,
                                         vertices[i].x,  vertices[i].y,
@@ -3523,9 +3523,9 @@ static stbtt__point *stbtt_FlattenCurves(stbtt_vertex *vertices, int num_verts, 
       (*contour_lengths)[n] = num_points - start;
    }
 
-   return points;
+   return Data;
 error:
-   STBTT_free(points, userdata);
+   STBTT_free(Data, userdata);
    STBTT_free(*contour_lengths, userdata);
    *contour_lengths = 0;
    *num_contours = 0;

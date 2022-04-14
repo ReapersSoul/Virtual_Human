@@ -156,11 +156,11 @@ struct Cube {
     double front;
     double back;
 
-    bool contains(Point * point) {
+    bool contains(Point point) {
         return (
-            this->left <= point->x && point->x <= this->right &&
-            this->top <= point->y && point->y <= this->bottom  &&
-            this->front <= point->y && point->y <= this->back 
+            this->left <= point.x && point.x <= this->right &&
+            this->top <= point.y && point.y <= this->bottom  &&
+            this->front <= point.z && point.z <= this->back 
             );
     }
 
@@ -287,12 +287,18 @@ struct Sphere {
     }
 };
 
+template<typename T>
 struct OctTree {
     int MAX_DEPTH = 8;
 
+    struct Obj {
+        T obj;
+        Point pos;
+    };
+
     Cube boundary;
     int capacity;
-    std::vector<Point *> points;
+    std::vector<std::pair<T *,Obj>> Data;
     bool divided;
     int depth;
 
@@ -319,7 +325,7 @@ struct OctTree {
     OctTree* southwestdown;
 
     void Clear() {
-
+        Data.clear();
         delete northeastup;
         delete northwestup;
         delete southeastup;
@@ -379,29 +385,29 @@ struct OctTree {
         // Move points to children.
         // This improves performance by placing points
         // in the smallest available rectangle.
-        for (int i = 0; i < points.size();i++) {
-            bool inserted = northeastup->insert(points[i]) ||
-                northwestup->insert(points[i]) ||
-                southeastup->insert(points[i]) ||
-                southwestup->insert(points[i]) ||
-                northeastdown->insert(points[i]) ||
-                northwestdown->insert(points[i]) ||
-                southeastdown->insert(points[i]) ||
-                southwestdown->insert(points[i]);
+        for (int i = 0; i < Data.size();i++) {
+            bool inserted = northeastup->insert(Data[i]) ||
+                northwestup->insert(Data[i]) ||
+                southeastup->insert(Data[i]) ||
+                southwestup->insert(Data[i]) ||
+                northeastdown->insert(Data[i]) ||
+                northwestdown->insert(Data[i]) ||
+                southeastdown->insert(Data[i]) ||
+                southwestdown->insert(Data[i]);
         }
 
-        this->points = std::vector<Point*>();
+        this->Data = std::vector<T*>();
     }
 
-    bool insert(Point * point) {
-        if (!boundary.contains(point)) {
+    bool insert(Obj point) {
+        if (!boundary.contains(point.pos)) {
             return false;
         }
 
         if (!divided) {
-            if (points.size() < capacity ||
+            if (Data.size() < capacity ||
                 depth == MAX_DEPTH) {
-                    points.push_back(point);
+                    Data.push_back(point);
                     return true;
             }
 
@@ -420,9 +426,9 @@ struct OctTree {
             );
     }
 
-    std::vector<Point *> query(Cube range, std::vector<Point*> * found=nullptr) {
+    std::vector<Obj> query(Cube range, std::vector<Obj> * found=nullptr) {
         if (!found) {
-            found = new std::vector<Point*>;
+            found = new std::vector<Obj>;
         }
 
         if (!range.intersects(boundary)) {
@@ -441,27 +447,27 @@ struct OctTree {
             return *found;
         }
 
-        for (int i = 0; i < points.size();i++) {
-            if (range.contains(points[i])) {
-                found->push_back(points[i]);
+        for (int i = 0; i < Data.size();i++) {
+            if (range.contains(Data[i].pos)) {
+                found->push_back(Data[i]);
             }
         }
 
         return *found;
     }
 
-    std::vector<Point*> closest(Point* searchPoint, int maxCount = 1, int maxDistance = 9999999999999999) {
+    std::vector<T> closest(T* searchPoint, int maxCount = 1, int maxDistance = 9999999999999999) {
         double sqMaxDistance = pow(maxDistance ,2);
         return kNearest(searchPoint, maxCount, sqMaxDistance, 0, 0).found;
     }
 
     struct kNerestSet {
-        std::vector<Point*> found;
+        std::vector<T> found;
         double furthestSqDistance;
     };
 
-    kNerestSet kNearest(Point * searchPoint, int maxCount,double sqMaxDistance,double furthestSqDistance,int foundSoFar) {
-        std::vector<Point*> found;
+    kNerestSet kNearest(T searchPoint, int maxCount,double sqMaxDistance,double furthestSqDistance,int foundSoFar) {
+        std::vector<T*> found;
 
         if (divided) {
             std::vector<OctTree*> children = get_children();
@@ -478,7 +484,7 @@ struct OctTree {
                 }
                 else if (foundSoFar < maxCount || sqDistance < furthestSqDistance) {
                     kNerestSet result = children[i]->kNearest(searchPoint, maxCount, sqMaxDistance, furthestSqDistance, foundSoFar);
-                    std::vector<Point*> childPoints = result.found;
+                    std::vector<T*> childPoints = result.found;
                     for (int i = 0; i < childPoints.size(); i++)
                     {
                         found.push_back(childPoints[i]);
@@ -489,24 +495,24 @@ struct OctTree {
             }
         }
         else {
-            std::sort(points.begin(), points.end(), [searchPoint](Point* a, Point* b) {
+            std::sort(Data.begin(), Data.end(), [searchPoint](T* a, T* b) {
                 a->sqDistanceFrom(searchPoint) - b->sqDistanceFrom(searchPoint);
                 });
-            for (int i = 0; i < points.size(); i++)
+            for (int i = 0; i < Data.size(); i++)
             {
-                double sqDistance = points[i]->sqDistanceFrom(searchPoint);
+                double sqDistance = Data[i]->sqDistanceFrom(searchPoint);
                 if (sqDistance > sqMaxDistance) {
                     return;
                 }
                 else if (foundSoFar < maxCount || sqDistance < furthestSqDistance) {
-                    found.push_back(points[i]);
+                    found.push_back(Data[i]);
                     furthestSqDistance = max(sqDistance, furthestSqDistance);
                     foundSoFar++;
                 }
             }
         }
 
-        std::sort(found.begin(), found.end(), [searchPoint](Point* a,Point* b) {
+        std::sort(found.begin(), found.end(), [searchPoint](T* a,T* b) {
             a->sqDistanceFrom(searchPoint) - b->sqDistanceFrom(searchPoint);
             });
 
@@ -551,7 +557,7 @@ struct OctTree {
                 );
         }
 
-        return points.size();
+        return Data.size();
     }
 
     void Draw() {

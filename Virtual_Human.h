@@ -284,7 +284,7 @@ namespace Virtual_Human {
     }
 
     struct Volume {
-        std::vector<Point*> points;
+        std::vector<Point*> Data;
     };
 
     struct Object {
@@ -577,7 +577,7 @@ namespace Virtual_Human {
 
         Cube boundary;
         int capacity;
-        std::vector<Point*> points;
+        std::vector<Point*> Data;
         bool divided;
         int depth;
 
@@ -673,18 +673,18 @@ namespace Virtual_Human {
             // Move points to children.
             // This improves performance by placing points
             // in the smallest available rectangle.
-            for (int i = 0; i < points.size(); i++) {
-                bool inserted = northeastup->insert(points[i]) ||
-                    northwestup->insert(points[i]) ||
-                    southeastup->insert(points[i]) ||
-                    southwestup->insert(points[i]) ||
-                    northeastdown->insert(points[i]) ||
-                    northwestdown->insert(points[i]) ||
-                    southeastdown->insert(points[i]) ||
-                    southwestdown->insert(points[i]);
+            for (int i = 0; i < Data.size(); i++) {
+                bool inserted = northeastup->insert(Data[i]) ||
+                    northwestup->insert(Data[i]) ||
+                    southeastup->insert(Data[i]) ||
+                    southwestup->insert(Data[i]) ||
+                    northeastdown->insert(Data[i]) ||
+                    northwestdown->insert(Data[i]) ||
+                    southeastdown->insert(Data[i]) ||
+                    southwestdown->insert(Data[i]);
             }
 
-            this->points = std::vector<Point*>();
+            this->Data = std::vector<Point*>();
         }
 
         bool insert(Point* point) {
@@ -693,9 +693,9 @@ namespace Virtual_Human {
             }
 
             if (!divided) {
-                if (points.size() < capacity ||
+                if (Data.size() < capacity ||
                     depth == MAX_DEPTH) {
-                    points.push_back(point);
+                    Data.push_back(point);
                     return true;
                 }
 
@@ -735,9 +735,9 @@ namespace Virtual_Human {
                 return *found;
             }
 
-            for (int i = 0; i < points.size(); i++) {
-                if (range.contains(points[i])) {
-                    found->push_back(points[i]);
+            for (int i = 0; i < Data.size(); i++) {
+                if (range.contains(Data[i])) {
+                    found->push_back(Data[i]);
                 }
             }
 
@@ -794,17 +794,17 @@ namespace Virtual_Human {
                 }
             }
             else {
-                std::sort(points.begin(), points.end(), [searchPoint](Point* a, Point* b) {
+                std::sort(Data.begin(), Data.end(), [searchPoint](Point* a, Point* b) {
                     return a->sqDistanceFrom(searchPoint) - b->sqDistanceFrom(searchPoint);
                     });
-                for (int i = 0; i < points.size(); i++)
+                for (int i = 0; i < Data.size(); i++)
                 {
-                    double sqDistance = points[i]->sqDistanceFrom(searchPoint);
+                    double sqDistance = Data[i]->sqDistanceFrom(searchPoint);
                     if (sqDistance > sqMaxDistance) {
                         return kNearestSet();
                     }
                     else if (foundSoFar < maxCount || sqDistance < furthestSqDistance) {
-                        found.push_back(points[i]);
+                        found.push_back(Data[i]);
                         furthestSqDistance = max(sqDistance, furthestSqDistance);
                         foundSoFar++;
                     }
@@ -856,7 +856,7 @@ namespace Virtual_Human {
                     );
             }
 
-            return points.size();
+            return Data.size();
         }
 
         void Draw() {

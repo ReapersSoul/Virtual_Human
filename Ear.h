@@ -3,8 +3,8 @@ namespace Ear {
 	class Ear
 	{
 	public:
-		Ear();
-		~Ear();
+		Ear() {};
+		~Ear() {};
 
 	private:
 

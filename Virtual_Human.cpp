@@ -37,7 +37,9 @@ namespace fs = std::filesystem;
 #include <thread>
 
 #include "Virtual_Human.h"
+#include "Human.h"
 #include "Evolution.h"
+#include "Physics.h"
 #include "Brain.h"
 #include <chrono>
 namespace chrono= std::chrono;
@@ -225,15 +227,88 @@ int main()
     //wind.Loop();
 
     
+
+    class PhysicalHuman :public Human::Human, public Physics::CollisionObject {
+        void OnColision(CollisionObject* collision) {
+
+        }
+        Physics::Vec3<double> GetPos() {};
+
+        Physics::Collision CheckCollision(CollisionObject* obj) {
+            if (typeid(obj) == typeid(this)) {
+
+            }
+        };
+
+        PhysicalHuman operator=(Human h) {
+
+        }
+    };
+
+    PhysicalHuman Sabrina(2, 100, 180, 5, 20, Skeleton::Skeleton(), nullptr);
+
+    typedef double (*Eval)(Human::Human obj1);
+    typedef std::vector<Human::Human> (*Mutate)(Human::Human obj1,int size);
+
+   
+
+    Evolution::Pool<PhysicalHuman, Eval, Mutate> pool(200, [](PhysicalHuman hum) {
+        int simulationTime = 10000;
+        // create physics engine
+        Physics::Physics phys;
+        //insert enviroment objects for human to interact with;
+        phys.DefaultWorld();
+        //insert human
+        phys.insert((Physics::CollisionObject *)(&hum), Physics::Vec3<double>());
+        //simulate for n milliseconds;
+        auto start = std::chrono::high_resolution_clock::now();
+        while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count() <= simulationTime) {
+            phys.step(.01);
+        }
+        //analise humans preformance from physics engine
+        
+        //are they speaking real words?
+
+        //do they stand properly/walk properly
+
+        //can they hold a conversation
+
+        //can they memorize things
+
+        //how is their dexterity
+
+        //do the display emotion
+
+        //do they respond to the pain sensors
+
+        //do they respond to wettness sensors
+        
+        //do they respond to flavor sensors
+
+        //do they respond to pleasure sensors
+
+        //do they preform bodily functions if they need to
+
+        //return how each human is doing
+        return MapRange<double>(rand(),0,RAND_MAX,-1,1);//returning random until i can figure out what good human behavior looks like
+        },  [](Human::Human obj1, int size) {
+            //mutate humans by mutating their brains along with some othe propertys of their "bodys"
+            std::vector<Human::Human> ret;
+            for (int i = 0; i < size; i++)
+            {
+                ret.push_back(obj1.GetMutate(.01));
+            }
+            //return a vector of humans that have been mutated
+            return ret;
+        });
+    Sabrina=pool.Evolve(200, Sabrina);
+
+    //populate the world with one Human to experiment with
+    Physics::Physics phys;
+    phys.DefaultWorld();
+    phys.insert(&Sabrina,Physics::Vec3<double>());
+    while (true) {
+        phys.step(.05);
+        phys.Draw();
+    }
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
