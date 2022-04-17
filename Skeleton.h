@@ -3,6 +3,7 @@
 
 namespace Skeleton {
 	class Bone {
+	protected:
 		double startx, starty, startz, endx, endy, endz;
 	public:
 		void SetAll(double _startx, double _starty, double _startz, double _endx, double _endy, double _endz) {
@@ -27,6 +28,7 @@ namespace Skeleton {
 	};
 
 	class Skeleton {
+	protected:
 		std::vector<Bone> bones;
 	public:
 

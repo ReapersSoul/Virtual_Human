@@ -3,6 +3,7 @@
 
 namespace Eye {
 	class Eye {
+	protected:
 		int resolution;
 		double Radius_FOV;
 		double focus;

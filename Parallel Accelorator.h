@@ -4,15 +4,12 @@
 #include <future>
 
 namespace Parallel_Accelorator {
-	
-	class Parallel_Accelorator {
 		template<typename RT, typename T>
 		void call(std::promise<RT> && p,T Data, std::function<RT(T)> callable) {
 			p.set_value(callable(Data));
 		}
-	public:
 		template< typename RT, typename T>
-		std::vector<RT> ExecuteCalls(std::vector<T> Data, std::function<RT(T)> callable) {
+		std::vector<RT> Parallel_Accelorator(std::vector<T> Data, std::function<RT(T)> callable) {
 			std::vector<RT> ret;
 			std::vector<std::thread> threads;
 			std::vector<std::promise<RT>> threadPromises;
@@ -21,7 +18,8 @@ namespace Parallel_Accelorator {
 			{
 				threadPromises.push_back(std::promise<RT>());
 				threadFutures.push_back(threadPromises[threadPromises.size()-1].get_future());
-				threads.push_back(std::thread(call<RT,T>, std::move(threadFutures[i]),Data[i],callable));
+				//std::thread(&call<RT,T>, std::move(threadFutures[i]), Data[i], callable);
+				//threads.push_back();
 			}
 			for (int i = 0; i < threads.size(); i++)
 			{
@@ -30,5 +28,4 @@ namespace Parallel_Accelorator {
 			}
 			return ret;
 		}
-	};
 }

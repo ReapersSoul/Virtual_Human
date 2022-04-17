@@ -169,6 +169,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Brain.h" />
+    <ClInclude Include="ColoredText.h" />
     <ClInclude Include="Ear.h" />
     <ClInclude Include="Evolution.h" />
     <ClInclude Include="Eye.h" />
@@ -184,6 +185,7 @@
     <ClInclude Include="imstb_rectpack.h" />
     <ClInclude Include="imstb_textedit.h" />
     <ClInclude Include="imstb_truetype.h" />
+    <ClInclude Include="json.hpp" />
     <ClInclude Include="OctTree.h" />
     <ClInclude Include="Parallel Accelorator.h" />
     <ClInclude Include="Physics.h" />

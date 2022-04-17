@@ -116,6 +116,12 @@
     <ClInclude Include="Parallel Accelorator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ColoredText.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="json.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -1,7 +1,8 @@
 #pragma once
 #include <vector>
+#include <functional>
 #include <algorithm>
-
+#include "ColoredText.h"
 
 namespace Evolution {
 
@@ -20,35 +21,32 @@ namespace Evolution {
 		return outMin + slope * (val - inMin);
 	}
 
-	template<typename T, typename EvalFunction, typename MutationFunction>
+	template<typename T>
 	class Pool {
 		std::vector<std::pair<T,double>> pool;
-		EvalFunction EF;
-		MutationFunction MF;
+		std::function<double(T)> EF;
+		std::function<std::vector<T>(T,int)> MF;
 		int size;
-		bool PrintDebug = false;
+		
 	public:	
+		static enum DebugStyles
+		{
+			ClearAfterGeneration,
+			Normal,
+			None
+		};
+	private:
+		DebugStyles PrintDebug = Normal;
+	public:
 
-		Pool(int size,EvalFunction e,MutationFunction m) {
+		Pool(int size, std::function<double(T)> e, std::function<std::vector<T>(T, int)> m) {
 			this->size = size;
 			pool.resize(size);
 			EF = e;
 			MF = m;
-			//EvaluationFunct = [](T obj) {
-			//	return obj;
-			//};
-			//MutationFunct = [](T obj,int i) {
-			//	std::vector<T> ret;
-			//	ret.push_back(obj);
-			//	for (int j = 0; j < i; j++)
-			//	{
-			//		ret.push_back(obj += MapRange<double>(rand(), 0, RAND_MAX, -.01, 1));
-			//	}
-			//	return ret;
-			//};
 		}
 
-		void SetPrintDebug(bool b) {
+		void SetPrintDebug(DebugStyles b) {
 			PrintDebug = b;
 		}
 
@@ -61,12 +59,19 @@ namespace Evolution {
 					return EF(obj1) < EF(obj2);
 					});
 				BestObject = objects[0];
-				if (PrintDebug) {
+				if (PrintDebug==Normal|| PrintDebug == ClearAfterGeneration) {
 					for (int j = 0; j < objects.size(); j++)
 					{
-						printf("Object %d of Generation %d was evaluated at %3.2f!\n", j, i, EF(objects[j]));
+						printfc("%4CObject %d of %2CGeneration %d was evaluated at %3C%3.2f!\n",true, j, i, EF(objects[j]));
 					}
-					printf("Best object of generation %d was %3.2f!\n", i, EF(BestObject));
+					printfc("%10CBest object of %2Cgeneration %d was %3C%3.2f!\n",true, i, EF(BestObject));
+				}
+				if (PrintDebug == ClearAfterGeneration) {
+					HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+					COORD coordScreen;
+					coordScreen.X = 0;
+					coordScreen.Y = 0;
+					SetConsoleCursorPosition(hConsole, coordScreen);
 				}
 			}
 			return BestObject;

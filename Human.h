@@ -9,6 +9,7 @@
 namespace Human {
 
     class Human {
+    protected:
         std::vector<std::pair<std::vector<double>, std::string>> * Senses;
         Eye::Eye Eyes[2];
         Ear::Ear Ears[2];
